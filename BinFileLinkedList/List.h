@@ -67,7 +67,7 @@ public:
    void prependNode(int value);
    void addInPos(int value, int pos);
    Node* seekNode(int index);
-   void setNodeValue(Node*, int value);
+   void setNodeValue(Node&, int value);
 
    void removeAllNodes();
    void removeNode(Node&);
