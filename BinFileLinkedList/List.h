@@ -70,7 +70,7 @@ public:
    void setNodeValue(Node&, int value);
 
    void removeAllNodes();
-   void removeNode(Node&);
+   void removeNode(int pos);
    int purge();
 
    void serializeSize();
