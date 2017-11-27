@@ -41,7 +41,7 @@ private:
    const char* fileName;
 
 public:
-   List(const char* newFile) { fileName= newFile; }
+   List(const char* newFile) { fileName= newFile; firstNode= lastNode= -1; listSize= 0; }
    ~List() { remove(fileName); }
 
    /////////////////

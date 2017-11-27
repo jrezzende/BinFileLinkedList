@@ -22,7 +22,7 @@ bool List::isEmpty()
    bool flag;
 
    fs.seekg(0, ios::end);
-   int fileSize= fs.tellg();
+   int fileSize= (int)fs.tellg();
 
    flag= fileSize <= HEADER_SIZE ? true : false;
 
@@ -33,7 +33,7 @@ bool List::openFile()
 {
    fs.open(fileName, ios::in | ios::out | ios::binary);
 
-   if ( !fs.good() ) {
+   if ( fs.fail() ) {
       newFile();
       openFile();
    }
@@ -58,7 +58,7 @@ bool List::openFile()
 
 void List::fileStatus()
 {
-   if (!fs.good()) {
+   if (fs.fail()) {
       fs.close();
       openFile();
    }
@@ -166,7 +166,7 @@ void List::appendNode(int value)
       serializeNode(*new_node);
    }
 
-   else
+   else 
       firstNode= lastNode= new_node->index;
 
    serializeNode(*new_node);
@@ -205,8 +205,8 @@ void List::addInPos(int value, int pos)
    fileStatus();
 
    Node* new_node= new Node(value);
-   Node* prev;
-   Node* next;
+   Node* prev= new Node();
+   Node* next= new Node();;
 
    if (pos <= 0) {
       prependNode(value);
@@ -284,9 +284,8 @@ void List::removeAllNodes()
    fs.seekg(HEADER_SIZE);
 
    Node* temp= seekNode(fs.tellg());
-   int pos;
-
-   for (; !fs.eof(); pos= temp->index ) {
+   
+   for (int pos= 0; !fs.eof(); pos= temp->index ) {
       temp->state= false;
       temp= seekNode(pos + NODE_SIZE);
    }
@@ -309,7 +308,43 @@ void List::removeNode(int pos)
 
 int List::purge()
 {
-   return 0;
+   int purgeCount= 0;
+   List* temp= new List("temp.bin");
+   fileStatus();
+   temp->fileStatus();
+
+   Node* tempNode= new Node();
+   fs.seekg(HEADER_SIZE);
+   tempNode= seekNode(HEADER_SIZE);
+
+   while (!fs.eof())
+   {
+      int oldFileIndex= tempNode->index;
+
+      if (tempNode->state) {
+         temp->appendNode(tempNode->value);
+      }
+      else
+         purgeCount++;
+
+      tempNode= seekNode(oldFileIndex + NODE_SIZE);
+   }
+   
+   temp->listSize= listSize;
+   temp->firstNode= firstNode;
+   temp->lastNode= lastNode;
+   temp->serializeHeader();
+
+   fs.close();
+   temp->fs.close();
+
+   remove(fileName);
+   rename(temp->fileName, fileName);
+   fileStatus();
+   delete temp;
+
+
+   return purgeCount;
 }
 
 void List::serializeSize()
