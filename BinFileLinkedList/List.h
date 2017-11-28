@@ -41,7 +41,12 @@ private:
    const char* fileName;
 
 public:
-   List(const char* newFile) { fileName= newFile; firstNode= lastNode= -1; listSize= 0; }
+   List(const char* fName) { 
+      fileName= fName; 
+      firstNode= lastNode= -1; 
+      listSize= 0;
+      openFile();
+   }
    ~List() { remove(fileName); }
 
    /////////////////

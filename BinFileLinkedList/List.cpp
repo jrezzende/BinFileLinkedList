@@ -38,11 +38,8 @@ bool List::openFile()
       openFile();
    }
 
-   if ( isEmpty() ) {
-      listSize= 0;
-      firstNode= lastNode= 1;
+   if ( isEmpty() ) 
       serializeHeader();
-   }
 
    else {
       fs.seekg(SIZE);
@@ -51,17 +48,29 @@ bool List::openFile()
       fs.read((char*)&firstNode, sizeof(int));
       fs.seekg(LAST);
       fs.read((char*)&lastNode, sizeof(int));
-   }
 
+      if (listSize > 1) {
+         Node* temp= seekNode(firstNode);
+         while (temp->next != -1) {
+
+            fs.seekg(temp->index);
+            serializeNode(*temp);
+
+            temp= seekNode(temp->next);
+         }
+      }
+   }
    return true;
 }
 
 void List::fileStatus()
 {
-   if (fs.fail()) {
+  /* if (fs.fail()) {*/
+   if( fs.is_open()){
       fs.close();
-      openFile();
+     
    }
+   openFile();
 }
 
 void List::clearFile()
@@ -84,7 +93,7 @@ string List::displayAsc()
    }
    Node* temp= seekNode(firstNode);
 
-   while (!fs.eof()) {
+   while (temp->next != -1) {
       fs.seekg(temp->index);
 
       fs.read((char*)&temp->index, sizeof(int));
@@ -96,7 +105,8 @@ string List::displayAsc()
       buffer << "At index number: " << temp->index << " the value is: " << temp->value << endl;
       temp= seekNode(temp->next);
    }
-
+   temp= seekNode(lastNode);
+   buffer << "At index number: " << temp->index << " the value is: " << temp->value << endl;
    return buffer.str();
 } 
 
@@ -147,13 +157,14 @@ void List::concatenateList(List& list)
 } 
 
 
+
 void List::appendNode(int value)
 {
    fileStatus();
    fs.seekg(0, ios::end);
 
    Node* new_node= new Node(value);
-   new_node->index= fs.tellg();
+   new_node->index= (int)fs.tellg();
    listSize++;
 
    if (lastNode != -1) {
@@ -163,7 +174,7 @@ void List::appendNode(int value)
       new_node->prev= temp->index;
       lastNode= new_node->index;
 
-      serializeNode(*new_node);
+      serializeNode(*temp);
    }
 
    else 
@@ -171,7 +182,6 @@ void List::appendNode(int value)
 
    serializeNode(*new_node);
    serializeHeader();
-
 }
 
 void List::prependNode(int value)
@@ -180,7 +190,7 @@ void List::prependNode(int value)
    fs.seekg(0, ios::end);
 
    Node* new_node= new Node(value);
-   new_node->index= fs.tellg();
+   new_node->index= (int)fs.tellg();
    listSize++;
 
    if (firstNode != -1) {
@@ -360,19 +370,21 @@ void List::serializeHeader()
    fs.write((char*)&listSize, sizeof(int));
    fs.write((char*)&firstNode, sizeof(int));
    fs.write((char*)&lastNode, sizeof(int));
+   fs.flush();
 }
 
 void List::serializeNode(Node& node)
 {
    fs.seekp(node.index);
 
-   fs.write((char*)&node.index, sizeof(int));
-   fs.write((char*)&node.value, sizeof(int));
-   fs.write((char*)&node.next, sizeof(int));
-   fs.write((char*)&node.prev, sizeof(int));
-   fs.write((char*)&node.state, sizeof(bool));
-
-   serializeSize();
+   if (fs.is_open()) {
+      fs.write((char*)&node.index, sizeof(int));
+      fs.write((char*)&node.value, sizeof(int));
+      fs.write((char*)&node.next, sizeof(int));
+      fs.write((char*)&node.prev, sizeof(int));
+      fs.write((char*)&node.state, sizeof(bool));
+      fs.flush();
+   }
 }
 
 void List::serializeSetValue(Node& node)
