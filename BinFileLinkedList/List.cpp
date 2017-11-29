@@ -65,7 +65,6 @@ bool List::openFile()
 
 void List::fileStatus()
 {
-  /* if (fs.fail()) {*/
    if( fs.is_open()){
       fs.close();
      
@@ -79,6 +78,7 @@ void List::clearFile()
    fs.open(fileName, ios::out | ios::trunc);
 
    firstNode= lastNode= -1;
+   listSize=0;
    serializeHeader();
 }
 
@@ -122,9 +122,7 @@ string List::displayDesc()
 
    Node* temp= seekNode(lastNode);
 
-   int totalSize= listSize;
-
-   while (totalSize != SIZE) {
+   while (temp->prev != -1) {
       fs.seekg(temp->index);
 
       fs.read((char*)&temp->index, sizeof(int));
@@ -135,7 +133,6 @@ string List::displayDesc()
 
       buffer << "At index number: " << temp->index << " the value is: " << temp->value << endl;
       temp= seekNode(temp->prev);
-      totalSize-= NODE_SIZE;
    }
 
    return buffer.str();
@@ -181,6 +178,7 @@ void List::appendNode(int value)
       firstNode= lastNode= new_node->index;
 
    serializeNode(*new_node);
+   serializeSize();
    serializeHeader();
 }
 
@@ -207,16 +205,18 @@ void List::prependNode(int value)
       firstNode= lastNode= new_node->index;
 
    serializeNode(*new_node);
+   serializeSize();
    serializeHeader();
 }
 
 void List::addInPos(int value, int pos)
 {
+   pos= pos * NODE_SIZE;
    fileStatus();
 
    Node* new_node= new Node(value);
    Node* prev= new Node();
-   Node* next= new Node();;
+   Node* next= new Node();
 
    if (pos <= 0) {
       prependNode(value);
@@ -229,7 +229,7 @@ void List::addInPos(int value, int pos)
    }
 
    else
-      prev= seekNode( pos - 1 );
+      prev= seekNode(pos);
 
    fs.seekg(pos);
 
@@ -249,7 +249,6 @@ void List::addInPos(int value, int pos)
 
 List::Node * List::seekNode(int index)
 {
-   fileStatus();
    fs.seekg(index);
 
    Node* new_node= new Node();
@@ -263,10 +262,13 @@ List::Node * List::seekNode(int index)
    return new_node;
 }
 
-void List::setNodeValue(Node& node, int value)
+void List::setNodeValue(int pos, int value)
 {
-   node.value= value;
-   serializeNode(node);
+   Node* temp= new Node();
+   pos = ((pos - 1) * NODE_SIZE) + HEADER_SIZE;
+   temp= seekNode(pos);
+   temp->value= value;
+   serializeNode(*temp);
 }
 
 void List::sortList()
@@ -274,16 +276,25 @@ void List::sortList()
    Node* current= seekNode(firstNode);
    Node* temp;
 
-   for (int i= 0; i < listSize; i++) {
+   for (int i= 1; i < listSize; i++) {
       temp= seekNode(current->next);
-      for (int j= 0; j < listSize; j++) {
-         if (current->index > temp->index) {
-            swap(current->index, temp->index);
+
+      while (temp->next != -1) {
+         if (current->value > temp->value) {
+            swap(current->value, temp->value);
             serializeNode(*current);
             serializeNode(*temp);
          }
+
          temp= seekNode(temp->next);
       }
+
+      if (current->value > temp->value) {
+         swap(current->value, temp->value);
+         serializeNode(*current);
+         serializeNode(*temp);
+      }
+
       current= seekNode(current->next);
    }
 }
@@ -295,10 +306,14 @@ void List::removeAllNodes()
 
    Node* temp= seekNode(fs.tellg());
    
-   for (int pos= 0; !fs.eof(); pos= temp->index ) {
+   while (temp->next != -1) {
       temp->state= false;
-      temp= seekNode(pos + NODE_SIZE);
-   }
+      temp= seekNode(temp->next);
+      serializeNode(*temp);
+  }
+   temp->index= lastNode;
+   temp->state= false;
+   serializeNode(*temp);
 }
 
 void List::removeNode(int pos)
@@ -323,9 +338,8 @@ int List::purge()
    fileStatus();
    temp->fileStatus();
 
-   Node* tempNode= new Node();
    fs.seekg(HEADER_SIZE);
-   tempNode= seekNode(HEADER_SIZE);
+   Node* tempNode= seekNode(HEADER_SIZE);
 
    while (!fs.eof())
    {

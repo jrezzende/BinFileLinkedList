@@ -51,37 +51,37 @@ public:
 
    /////////////////
 
-   void newFile();
-   bool openFile();
-   bool isEmpty();
-   void fileStatus();
-   void clearFile();
+   void newFile();// ok
+   bool openFile();// ok
+   bool isEmpty();// ok
+   void fileStatus();// ok
+   void clearFile();// ok
 
-   int getListSize() { return listSize; }
-   int getFirstNode() { return firstNode; }
-   int getLastNode() { return lastNode; }
-   string getFileName() { return fileName; }
+   int getListSize() { return listSize; } // ok
+   int getFirstNode() { return firstNode; }// ok
+   int getLastNode() { return lastNode; }// ok
+   string getFileName() { return fileName; }// ok
    
-   string displayAsc();
-   string displayDesc();
+   string displayAsc();// ok
+   string displayDesc();// ok
 
-   void concatenateList(List&);
-   void sortList();
+   void concatenateList(List&);// ok
+   void sortList();// ok
 
-   void appendNode(int value);
-   void prependNode(int value);
-   void addInPos(int value, int pos);
-   Node* seekNode(int index);
-   void setNodeValue(Node&, int value);
+   void appendNode(int value);// ok
+   void prependNode(int value);// ok
+   void addInPos(int value, int pos);// ok
+   Node* seekNode(int index);// ok 
+   void setNodeValue(int pos, int value); // ok
 
-   void removeAllNodes();
-   void removeNode(int pos);
-   int purge();
+   void removeAllNodes();// ok
+   void removeNode(int pos); // ok
+   int purge(); // ?
 
-   void serializeSize();
-   void serializeHeader();
-   void serializeNode(Node&);
-   void serializeSetValue(Node&);
+   void serializeSize();// ok
+   void serializeHeader();// ok
+   void serializeNode(Node&);// ok
+   void serializeSetValue(Node&);// ok
 };
 
 #endif // !INCLUDED_LIST_H
