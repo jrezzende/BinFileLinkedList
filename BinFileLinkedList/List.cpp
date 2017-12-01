@@ -302,32 +302,68 @@ void List::sortList()
 void List::removeAllNodes()
 {
    fileStatus();
-   fs.seekg(HEADER_SIZE);
+   Node* temp= seekNode(firstNode);
+   int tempSize= listSize;
 
-   Node* temp= seekNode(fs.tellg());
-   
-   while (temp->next != -1) {
+   for (int i = 1; i <= tempSize; i++) {
       temp->state= false;
-      temp= seekNode(temp->next);
       serializeNode(*temp);
-  }
-   temp->index= lastNode;
-   temp->state= false;
-   serializeNode(*temp);
+      temp= seekNode(temp->next);
+   }
+   listSize= 0;
+   serializeSize();
+   serializeHeader();
 }
 
 void List::removeNode(int pos)
 {
-   fileStatus();
-   Node* temp= seekNode(pos);
+   Node* temp= seekNode(firstNode);
 
-   if (!temp) {
+   if (!temp)
       return;
+
+   if (pos >= listSize) {
+      temp= seekNode(lastNode);
+      lastNode= temp->prev;
+      Node* auxTemp= temp;
+      temp= seekNode(lastNode);
+      temp->next= -1;
+      auxTemp->state= false;
+
+      serializeNode(*auxTemp);
+      serializeNode(*temp);
    }
 
-   temp->state= false;
-   listSize--;
+   else if (pos <= 1) {
+      temp= seekNode(firstNode);
+      firstNode= temp->next;
+      Node* auxTemp= temp;
+      temp= seekNode(firstNode);
+      temp->prev= -1;
+      auxTemp->state= false;
 
+      serializeNode(*auxTemp);
+      serializeNode(*temp);
+   }
+
+   else {
+      for (int i = 1; i < pos; i++)
+         temp= seekNode(temp->next);
+
+         Node* tempNext= seekNode(temp->next);
+         Node* tempPrev= seekNode(temp->prev);
+
+         tempPrev->next= tempNext->index;
+         tempNext->prev= tempPrev->index;
+         temp->state= false;
+
+         serializeNode(*temp);
+         serializeNode(*tempNext);
+         serializeNode(*tempPrev);
+   }
+
+   listSize--;
+   serializeSize();
    serializeHeader();
 }
 
@@ -339,9 +375,9 @@ int List::purge()
    temp->fileStatus();
 
    fs.seekg(HEADER_SIZE);
-   Node* tempNode= seekNode(HEADER_SIZE);
+   Node* tempNode= seekNode(firstNode);
 
-   while (!fs.eof())
+   while (tempNode->next != -1)
    {
       int oldFileIndex= tempNode->index;
 
@@ -351,13 +387,17 @@ int List::purge()
       else
          purgeCount++;
 
-      tempNode= seekNode(oldFileIndex + NODE_SIZE);
+      tempNode= seekNode(tempNode->index + NODE_SIZE);
    }
-   
-   temp->listSize= listSize;
-   temp->firstNode= firstNode;
-   temp->lastNode= lastNode;
+
+   if (tempNode->state) {
+      temp->appendNode(tempNode->value);
+   }
+   else
+      purgeCount++;
+  
    temp->serializeHeader();
+   temp->serializeSize();
 
    fs.close();
    temp->fs.close();
@@ -366,7 +406,6 @@ int List::purge()
    rename(temp->fileName, fileName);
    fileStatus();
    delete temp;
-
 
    return purgeCount;
 }
