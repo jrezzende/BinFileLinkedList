@@ -1,26 +1,17 @@
-#include <iostream>
-#include <sstream>
-#include "List.h"
+#include <crtdbg.h>
+#include <stdio.h>
+#include "Menu.h"
 
-int main()
+void main()
 {
-   List* list= new List("fileName.bin");
+   _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+   _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);
+   _CrtMemState s1;
 
-   list->appendNode(1);
-   list->appendNode(2);
-   list->appendNode(3);
-   list->appendNode(4);
-   list->appendNode(5);
+   Menu::menu();
 
-   cout << list->getListSize() << endl;
-   cout << list->displayAsc();
-   
+   _CrtMemCheckpoint(&s1);
+   _CrtMemDumpStatistics(&s1);
+   _CrtDumpMemoryLeaks();
 
-   list->removeAllNodes();
-   cout << list->purge() << endl;
-   cout << list->getListSize() << endl;
-   cout << list->displayAsc();
-
-   return 0;
 }
-

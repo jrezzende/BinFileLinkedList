@@ -1,9 +1,9 @@
-#include "List.h"
 #include <string>
 #include <fstream>
 #include <iterator>
 #include <algorithm>
 #include <sstream>
+#include "List.h"
 
 
 void List::newFile()
@@ -33,6 +33,8 @@ bool List::openFile()
 {
    fs.open(fileName, ios::in | ios::out | ios::binary);
 
+   int holder= listSize;
+
    if ( fs.fail() ) {
       newFile();
       openFile();
@@ -48,6 +50,9 @@ bool List::openFile()
       fs.read((char*)&firstNode, sizeof(int));
       fs.seekg(LAST);
       fs.read((char*)&lastNode, sizeof(int));
+
+      listSize= holder;
+
 
       if (listSize > 1) {
          Node* temp= seekNode(firstNode);
@@ -84,10 +89,11 @@ void List::clearFile()
 
 string List::displayAsc()
 {
+   fileStatus();
    fs.seekg(HEADER_SIZE);
    ostringstream buffer;
 
-   if (!listSize) {
+   if (firstNode == 12 && lastNode == 12) {
       buffer << "Empty list.\n";
       return buffer.str();
    }
@@ -299,13 +305,12 @@ void List::sortList()
    }
 }
 
-void List::removeAllNodes()
+void List::disableAllNodes()
 {
    fileStatus();
    Node* temp= seekNode(firstNode);
-   int tempSize= listSize;
 
-   for (int i = 1; i <= tempSize; i++) {
+   for (int i = 1; i <= listSize; i++) {
       temp->state= false;
       serializeNode(*temp);
       temp= seekNode(temp->next);
@@ -315,7 +320,7 @@ void List::removeAllNodes()
    serializeHeader();
 }
 
-void List::removeNode(int pos)
+void List::disableNode(int pos)
 {
    Node* temp= seekNode(firstNode);
 
@@ -347,7 +352,7 @@ void List::removeNode(int pos)
    }
 
    else {
-      for (int i = 1; i < pos; i++)
+      for (int i = 1; i < pos; i++) 
          temp= seekNode(temp->next);
 
          Node* tempNext= seekNode(temp->next);
@@ -361,15 +366,13 @@ void List::removeNode(int pos)
          serializeNode(*tempNext);
          serializeNode(*tempPrev);
    }
-
    listSize--;
    serializeSize();
    serializeHeader();
 }
 
-int List::purge()
+void List::purge()
 {
-   int purgeCount= 0;
    List* temp= new List("temp.bin");
    fileStatus();
    temp->fileStatus();
@@ -384,18 +387,13 @@ int List::purge()
       if (tempNode->state) {
          temp->appendNode(tempNode->value);
       }
-      else
-         purgeCount++;
 
-      tempNode= seekNode(tempNode->index + NODE_SIZE);
+      tempNode= seekNode(tempNode->next);
    }
 
-   if (tempNode->state) {
+   if (tempNode->state)
       temp->appendNode(tempNode->value);
-   }
-   else
-      purgeCount++;
-  
+
    temp->serializeHeader();
    temp->serializeSize();
 
@@ -404,10 +402,9 @@ int List::purge()
 
    remove(fileName);
    rename(temp->fileName, fileName);
-   fileStatus();
    delete temp;
+   fileStatus();
 
-   return purgeCount;
 }
 
 void List::serializeSize()

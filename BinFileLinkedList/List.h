@@ -61,6 +61,7 @@ public:
    int getFirstNode() { return firstNode; }// ok
    int getLastNode() { return lastNode; }// ok
    string getFileName() { return fileName; }// ok
+   //string setFileName(char newName[]) { fileName= newName; }
    
    string displayAsc();// ok
    string displayDesc();// ok
@@ -74,9 +75,9 @@ public:
    Node* seekNode(int index);// ok 
    void setNodeValue(int pos, int value); // ok
 
-   void removeAllNodes();// ok
-   void removeNode(int pos); // ok
-   int purge(); // ?
+   void disableAllNodes();// ok
+   void disableNode(int pos); // ok
+   void purge(); // ok
 
    void serializeSize();// ok
    void serializeHeader();// ok
