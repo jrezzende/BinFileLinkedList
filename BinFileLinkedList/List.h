@@ -56,12 +56,12 @@ public:
    bool isEmpty();// ok
    void fileStatus();// ok
    void clearFile();// ok
+   void closeFile(); // ok
 
    int getListSize() { return listSize; } // ok
    int getFirstNode() { return firstNode; }// ok
    int getLastNode() { return lastNode; }// ok
    string getFileName() { return fileName; }// ok
-   //string setFileName(char newName[]) { fileName= newName; }
    
    string displayAsc();// ok
    string displayDesc();// ok

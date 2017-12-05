@@ -5,6 +5,7 @@
 #include <sstream>
 #include "List.h"
 
+using namespace std;
 
 void List::newFile()
 {
@@ -87,13 +88,18 @@ void List::clearFile()
    serializeHeader();
 }
 
+void List::closeFile()
+{
+   fs.close();
+}
+
 string List::displayAsc()
 {
    fileStatus();
    fs.seekg(HEADER_SIZE);
    ostringstream buffer;
 
-   if (firstNode == 12 && lastNode == 12) {
+   if (!listSize) {
       buffer << "Empty list.\n";
       return buffer.str();
    }
@@ -113,6 +119,7 @@ string List::displayAsc()
    }
    temp= seekNode(lastNode);
    buffer << "At index number: " << temp->index << " the value is: " << temp->value << endl;
+
    return buffer.str();
 } 
 
@@ -140,6 +147,8 @@ string List::displayDesc()
       buffer << "At index number: " << temp->index << " the value is: " << temp->value << endl;
       temp= seekNode(temp->prev);
    }
+   temp= seekNode(firstNode);
+   buffer << "At index number: " << temp->index << " the value is: " << temp->value << endl;
 
    return buffer.str();
 }
@@ -155,11 +164,10 @@ void List::concatenateList(List& list)
       appendNode(temp->value);
       temp= list.seekNode(temp->next);
    }
-   appendNode(list.lastNode);
+   temp= list.seekNode(list.lastNode);
+   appendNode(temp->value);
    list.clearFile();
 } 
-
-
 
 void List::appendNode(int value)
 {
@@ -217,7 +225,6 @@ void List::prependNode(int value)
 
 void List::addInPos(int value, int pos)
 {
-   pos= pos * NODE_SIZE;
    fileStatus();
 
    Node* new_node= new Node(value);
@@ -234,16 +241,21 @@ void List::addInPos(int value, int pos)
       return;
    }
 
-   else
-      prev= seekNode(pos);
+   else {
+      fs.seekg(0, ios::end);
+      new_node->index= fs.tellg();
 
-   fs.seekg(pos);
+      next= seekNode(firstNode);
+      for (int i= 0; i < pos; i++)
+         next= seekNode(next->next);
+   }
 
-   new_node->index= fs.tellg();
-   prev->next= new_node->index;
-   new_node->prev= prev->index;
+   prev= seekNode(next->prev);
+
    next->prev= new_node->index;
    new_node->next= next->index;
+   prev->next= new_node->index;
+   new_node->prev= prev->index;
 
    serializeNode(*new_node);
    serializeNode(*prev);

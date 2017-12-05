@@ -21,10 +21,12 @@ public:
    ListManager() { firstList= nullptr; secondList= nullptr; currentList= firstList; }
 
    bool areCreated() { return areInitialized; }
+   void switchState() { if (areInitialized) areInitialized= false; else areInitialized= true; }
    void createBothLists();
    void displayLists();
    bool concatenateLists(int pos);
    void deleteList();
+   bool fileExists();
 
    void setCurrentList(ListOption lo);
 

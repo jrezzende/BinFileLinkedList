@@ -1,54 +1,78 @@
 #include <iostream>
+#include <stdio.h>
 #include "User.h"
 #include "List.h"
 #include "ListManager.h"
 
 
-int User::uCreateBothLists(ListManager& lm)
+void User::uCreateBothLists(ListManager& lm)
 {
    system("cls");
 
+   if (lm.fileExists()) {
+      cout << "Lists already exist.\n";
+      return;
+   }
+
    lm.createBothLists();
 
-   return 1;
-
-   system("cls");
+   if (lm.areCreated()) {
+      cout << "Operation successful.\n";
+      return;
+   }
 }
 
 void User::uDisplayLists(ListManager& lm)
 {
    system("cls");
+   
+   if (lm.fileExists()) {
+      lm.displayLists();
+      return;
+   }
 
    if (!lm.areCreated()) {
       std::cout << "No list available.\n";
       return;
    }
-
-   lm.displayLists();
 }
 
-int User::uDeleteLists(ListManager& lm)
+void User::uDeleteLists(ListManager& lm)
 {
    system("cls");
 
-   if (!lm.areCreated()) 
-      return 0;
+   if (!lm.areCreated()) {
+      cout << "No list available.\n";
+      return;
+   }
 
-   lm.getFirstList().disableAllNodes();
-   lm.getFirstList().purge();
+   lm.getFirstList().closeFile();
 
-   lm.getSecondList().disableAllNodes();
-   lm.getSecondList().purge();
+   if (remove("firstList.bin") != 0)
+      cout << "Operation failed.\n";
+   else
+      cout << "Operation successful.\n";
 
-   return 1;
+   lm.getSecondList().closeFile();
+
+   if (remove("secondList.bin") != 0)
+      cout << "Operation failed.\n";
+   else
+      cout << "Operation successful.\n";
+
+   lm.switchState();
+
+   return;
 }
 
 bool User::uConcatenateLists(ListManager& lm)
 {
    system("cls");
 
-   if (!lm.areCreated())
+   if (!lm.areCreated()) {
+      cout << "No list available.\n";
       return false;
+   }
 
    int pos; 
 
@@ -58,8 +82,11 @@ bool User::uConcatenateLists(ListManager& lm)
    return lm.concatenateLists(pos);
 }
 
-int User::uSetCurrentList(ListManager& lm)
+void User::uSetCurrentList(ListManager& lm)
 {
+   if (!lm.areCreated())
+      return;
+
    lm.displayLists();
 
    int num;
@@ -70,10 +97,10 @@ int User::uSetCurrentList(ListManager& lm)
    system("cls");
 
    if (num != 1 && num != 2)
-      return 0;
+      return;
 
    lm.setCurrentList((num == 1) ? ListManager::List1 : ListManager::List2);
-   return 1;
+   return;
 }
 
 void User::uPrependNode(ListManager& lm)
@@ -129,7 +156,7 @@ void User::uDisplayAsc(ListManager& lm)
 {
    system("cls");
 
-   lm.getCurrentList().displayAsc();
+   cout << lm.getCurrentList().displayAsc();
 
    std::cout << std::endl;
 }
@@ -138,7 +165,7 @@ void User::uDisplayDesc(ListManager& lm)
 {
    system("cls");
 
-   lm.getCurrentList().displayDesc();
+   cout << lm.getCurrentList().displayDesc();
 
    std::cout << std::endl;
 }

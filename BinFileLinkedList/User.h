@@ -7,11 +7,11 @@ class ListManager;
 class User
 {
 public: 
-   int uCreateBothLists(ListManager&);
+   void uCreateBothLists(ListManager&);
    void uDisplayLists(ListManager&);
-   int uDeleteLists(ListManager&);
+   void uDeleteLists(ListManager&);
    bool uConcatenateLists(ListManager&);
-   int uSetCurrentList(ListManager&);
+   void uSetCurrentList(ListManager&);
 
    void uPrependNode(ListManager&);
    void uAppendNode(ListManager&);

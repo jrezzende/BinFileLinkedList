@@ -10,7 +10,7 @@ static void displayFirstMenu(ListManager&, User&);
 static void displaySecondMenu(ListManager&, User&);
 
 static int getFirstOption();
-static int getSecondOption();
+static int getSecondOption(ListManager&);
 
 using namespace std;
 
@@ -62,7 +62,7 @@ static void displaySecondMenu(ListManager& lm, User& user)
    
    do 
    {
-      op= getFirstOption();
+      op= getSecondOption(lm);
       switch (op)
       {
       case 1: user.uPrependNode(lm); break;
@@ -101,12 +101,13 @@ int getFirstOption()
    return option;
 }
 
-int getSecondOption()
+
+int getSecondOption(ListManager& lm)
 {
    int option;
 
    cout << "/////////////////////////////////////////////////////////////////\n";
-   cout << setw(43) << "Menu->List Manager" << endl;
+   cout << setw(43) << "Menu -> List Manager -> " << lm.getCurrentList().getFileName() << endl;
    cout << "/////////////////////////////////////////////////////////////////\n";
    cout << "            " << "Option 1: Prepend a node (attach to first position)" << endl;
    cout << "            " << "Option 2: Append a node (attach to last position)" << endl;

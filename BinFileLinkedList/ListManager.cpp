@@ -34,8 +34,8 @@ void ListManager::displayLists()
 {
    int pos= 1;
    
-   std::cout << "In position: " << pos++ << " the list name is: " << firstList->getFileName() << std::endl;
-   std::cout << "In position: " << pos << " the list name is: " << secondList->getFileName() << std::endl;
+   std::cout << "In position: " << pos++ << " the list name is: firstList.bin" << std::endl;
+   std::cout << "In position: " << pos << " the list name is: secondList.bin" << std::endl;
    
    return;
 }
@@ -64,6 +64,22 @@ void ListManager::deleteList()
       remove("secondList.bin");
 
    return;
+}
+
+bool ListManager::fileExists()
+{
+   bool flag= false;
+
+   ifstream firstFile("firstList.bin");
+   ifstream secondFile("secondList.bin");
+
+   if (firstFile && secondFile)
+      flag= true;
+
+   firstFile.close();
+   secondFile.close();
+
+   return flag;
 }
 
 void ListManager::setCurrentList(ListOption lo)
