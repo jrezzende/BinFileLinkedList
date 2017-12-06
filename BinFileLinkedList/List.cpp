@@ -20,14 +20,12 @@ void List::newFile()
 
 bool List::isEmpty()
 {
-   bool flag;
-
-   fs.seekg(0, ios::end);
-   int fileSize= (int)fs.tellg();
-
-   flag= fileSize <= HEADER_SIZE ? true : false;
-
-   return flag;
+   if (lastNode == firstNode) {
+      if (lastNode == -1) {
+         return true;
+      }
+   }
+   return false;
 }
 
 bool List::openFile()
@@ -328,13 +326,18 @@ void List::disableAllNodes()
       temp= seekNode(temp->next);
    }
    listSize= 0;
-   serializeSize();
-   serializeHeader();
+   firstNode= lastNode= -1;
+   fileStatus();
 }
 
 void List::disableNode(int pos)
 {
    Node* temp= seekNode(firstNode);
+   Node* tempLast= seekNode(lastNode);
+   bool flag= false;
+
+   if (temp->index == tempLast->index)
+      flag= true;
 
    if (!temp)
       return;
@@ -378,6 +381,10 @@ void List::disableNode(int pos)
          serializeNode(*tempNext);
          serializeNode(*tempPrev);
    }
+
+   if (flag)
+      firstNode= lastNode= -1;
+
    listSize--;
    serializeSize();
    serializeHeader();
@@ -389,22 +396,12 @@ void List::purge()
    fileStatus();
    temp->fileStatus();
 
-   fs.seekg(HEADER_SIZE);
    Node* tempNode= seekNode(firstNode);
 
-   while (tempNode->next != -1)
-   {
-      int oldFileIndex= tempNode->index;
-
-      if (tempNode->state) {
-         temp->appendNode(tempNode->value);
-      }
-
+   for (int i = 0; i < listSize; i++) {
+      temp->appendNode(tempNode->value);
       tempNode= seekNode(tempNode->next);
    }
-
-   if (tempNode->state)
-      temp->appendNode(tempNode->value);
 
    temp->serializeHeader();
    temp->serializeSize();
